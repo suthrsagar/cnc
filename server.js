@@ -23,7 +23,16 @@ app.get('/', (req, res) => {
 
 // Database connection
 const PORT = process.env.PORT || 5000;
-const MONGO_URL = process.env.MONGO_URL;
+let MONGO_URL = process.env.MONGO_URL;
+
+// Validation and sanitization for Render environment
+if (!MONGO_URL) {
+  console.error('❌ FATAL ERROR: MONGO_URL environment variable is missing.');
+  process.exit(1);
+}
+// Remove double quotes if they were accidentally added in Render
+MONGO_URL = MONGO_URL.replace(/^"|"/g, '').trim();
+
 const { cloudinary } = require('./config/cloudinary');
 
 mongoose.connect(MONGO_URL)
