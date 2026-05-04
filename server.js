@@ -21,33 +21,36 @@ app.get('/', (req, res) => {
   res.send('CNC Wood Design API is running... 🚀');
 });
 
-// Database connection
 const PORT = process.env.PORT || 5000;
 let MONGO_URL = process.env.MONGO_URL;
 
-// Validation and sanitization for Render environment
-if (!MONGO_URL) {
-  console.error('❌ FATAL ERROR: MONGO_URL environment variable is missing.');
-  process.exit(1);
-}
-// Remove double quotes if they were accidentally added in Render
-MONGO_URL = MONGO_URL.replace(/^"|"/g, '').trim();
-
 const { cloudinary } = require('./config/cloudinary');
 
-mongoose.connect(MONGO_URL)
-  .then(() => {
-    console.log('Connected to MongoDB ✅');
-    
-    // Cloudinary Ping test
-    cloudinary.api.ping()
-      .then(res => console.log('Connected to Cloudinary ✅'))
-      .catch(err => console.error('Cloudinary connection error ❌:', err.message));
+console.log("Checking Environment Variables:");
+console.log("- MONGO_URL exists?", !!MONGO_URL);
+console.log("- CLOUDINARY_CLOUD_NAME exists?", !!process.env.CLOUDINARY_CLOUD_NAME);
 
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT} 🚀`);
+if (!MONGO_URL) {
+  console.log("⚠️ WARNING: MONGO_URL is not set. Database will NOT be connected.");
+} else {
+  // Remove double quotes if they were accidentally added in Render
+  MONGO_URL = MONGO_URL.replace(/^"|"/g, '').trim();
+
+  mongoose.connect(MONGO_URL)
+    .then(() => {
+      console.log('Connected to MongoDB ✅');
+      
+      // Cloudinary Ping test
+      cloudinary.api.ping()
+        .then(res => console.log('Connected to Cloudinary ✅'))
+        .catch(err => console.error('Cloudinary connection error ❌:', err.message));
+    })
+    .catch((error) => {
+      console.error('MongoDB connection error ❌:', error.message);
     });
-  })
-  .catch((error) => {
-    console.error('MongoDB connection error ❌:', error);
-  });
+}
+
+// Always listen on port so Render doesn't kill the app
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT} 🚀`);
+});
