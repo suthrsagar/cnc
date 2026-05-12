@@ -10,7 +10,7 @@ const orderSchema = new mongoose.Schema({
   notes: { type: String },
   status: { 
     type: String, 
-    enum: ['Pending', 'In Progress', 'Completed', 'Delivered', 'Cancelled'], 
+    enum: ['Pending', 'Accepted', 'In Progress', 'Cutting', 'Polishing', 'Ready', 'Completed', 'Delivered', 'Cancelled'], 
     default: 'Pending' 
   },
   priceQuote: { type: Number }
