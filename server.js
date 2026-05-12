@@ -20,7 +20,7 @@ app.use('/api/designs', require('./routes/designRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));
 
 app.get('/', (req, res) => {
-  res.send('AuraWood CNC Backend is running');
+  res.send('AuraWood CNC Backend is running New');
 });
 
 app.use(errorHandler);

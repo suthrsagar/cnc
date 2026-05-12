@@ -54,3 +54,31 @@ exports.getOrderById = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.getAllOrders = async (req, res, next) => {
+  try {
+    const orders = await Order.find()
+      .populate('user', 'name email phone')
+      .populate('referenceDesign')
+      .sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.updateOrderStatus = async (req, res, next) => {
+  try {
+    const { status, priceQuote } = req.body;
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+
+    if (status) order.status = status;
+    if (priceQuote !== undefined) order.priceQuote = priceQuote;
+
+    await order.save();
+    res.json(order);
+  } catch (error) {
+    next(error);
+  }
+};
