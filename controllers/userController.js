@@ -10,6 +10,23 @@ exports.getProfile = async (req, res, next) => {
   }
 };
 
+exports.updateProfileImage = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    if (req.file) {
+      user.avatarUrl = req.file.path;
+      await user.save();
+      res.json(user);
+    } else {
+      res.status(400).json({ message: 'Please upload an image' });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.toggleSaveDesign = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id);
