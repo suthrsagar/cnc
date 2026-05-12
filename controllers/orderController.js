@@ -100,7 +100,7 @@ exports.updateOrderStatus = async (req, res, next) => {
     await order.save();
     
     // Populate before returning so frontend gets full data
-    await order.populate('user', 'name email phone');
+    await order.populate({ path: 'user', select: 'name email phone' });
     res.json(order);
   } catch (error) {
     next(error);

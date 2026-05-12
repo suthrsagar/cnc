@@ -27,7 +27,10 @@ const orderSchema = new mongoose.Schema({
 // Pre-save to auto-add history on creation
 orderSchema.pre('save', function(next) {
   if (this.isNew) {
-    this.statusHistory.push({ status: this.status, note: 'Order created' });
+    if (!this.statusHistory) {
+      this.statusHistory = [];
+    }
+    this.statusHistory.push({ status: this.status || 'Pending', note: 'Order created' });
   }
   next();
 });
