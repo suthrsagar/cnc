@@ -4,6 +4,7 @@ const designSchema = new mongoose.Schema({
   title: { type: String, required: true, trim: true },
   category: { type: String, required: true },
   imageUrl: { type: String, required: true },
+  imageUrls: [{ type: String }],
   description: { type: String },
   priceEstimate: { type: Number },
   isTrending: { type: Boolean, default: false },

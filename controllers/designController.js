@@ -32,10 +32,25 @@ exports.getDesignById = async (req, res, next) => {
 
 exports.createDesign = async (req, res, next) => {
   try {
-    const design = new Design(req.body);
-    if (req.file) {
-      design.imageUrl = req.file.path;
+    const designData = req.body;
+    let images = [];
+    
+    if (req.files && req.files.length > 0) {
+      images = req.files.map(f => f.path);
+    } else if (req.file) {
+      images = [req.file.path];
     }
+
+    if (images.length === 0) {
+      return res.status(400).json({ message: 'At least one image is required' });
+    }
+
+    const design = new Design({
+      ...designData,
+      imageUrl: images[0],
+      imageUrls: images
+    });
+
     await design.save();
     res.status(201).json(design);
   } catch (error) {
@@ -55,8 +70,16 @@ exports.updateDesign = async (req, res, next) => {
     if (isTrending !== undefined) design.isTrending = isTrending;
     if (isFeatured !== undefined) design.isFeatured = isFeatured;
 
-    if (req.file) {
-      design.imageUrl = req.file.path;
+    let images = [...(design.imageUrls || [])];
+    if (req.files && req.files.length > 0) {
+      images = [...images, ...req.files.map(f => f.path)];
+    } else if (req.file) {
+      images.push(req.file.path);
+    }
+
+    if (images.length > 0) {
+      design.imageUrl = images[0];
+      design.imageUrls = images;
     }
 
     await design.save();

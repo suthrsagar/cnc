@@ -9,11 +9,11 @@ const upload = multer({ storage });
 
 router.route('/')
   .get(getDesigns)
-  .post(protect, admin, upload.single('image'), createDesign);
+  .post(protect, admin, upload.array('images', 5), createDesign);
 
 router.route('/:id')
   .get(getDesignById)
-  .put(protect, admin, upload.single('image'), updateDesign)
+  .put(protect, admin, upload.array('images', 5), updateDesign)
   .delete(protect, admin, deleteDesign);
 
 module.exports = router;
