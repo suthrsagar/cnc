@@ -1,7 +1,5 @@
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
-const multer = require('multer');
-require('dotenv').config();
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -12,11 +10,10 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: 'cnc_designs',
-    allowed_formats: ['jpg', 'png', 'jpeg', 'webp']
+    folder: 'cnc_woodcraft_pro',
+    allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
+    transformation: [{ width: 1000, height: 1000, crop: 'limit' }]
   }
 });
 
-const upload = multer({ storage: storage });
-
-module.exports = { cloudinary, upload };
+module.exports = { cloudinary, storage };

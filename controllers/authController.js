@@ -1,79 +1,52 @@
-const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET || 'secret123', {
-    expiresIn: '30d',
-  });
+  return jwt.sign({ id }, process.env.JWT_SECRET || 'secret123', { expiresIn: '30d' });
 };
 
-// @desc    Register a new user
-// @route   POST /api/auth/register
-// @access  Public
-const registerUser = async (req, res) => {
+exports.registerUser = async (req, res, next) => {
   try {
     const { name, email, password, phone } = req.body;
-
-    const userExists = await User.findOne({ email });
-
-    if (userExists) {
-      res.status(400);
-      throw new Error('User already exists');
-    }
-
-    const user = await User.create({
-      name,
-      email,
-      password,
-      phone
-    });
-
+    
+    let user = await User.findOne({ email });
     if (user) {
-      res.status(201).json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
-        token: generateToken(user._id),
-      });
-    } else {
-      res.status(400);
-      throw new Error('Invalid user data');
+      return res.status(400).json({ message: 'User already exists' });
     }
+
+    user = await User.create({ name, email, password, phone });
+
+    res.status(201).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+      token: generateToken(user._id)
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
-// @desc    Auth user & get token
-// @route   POST /api/auth/login
-// @access  Public
-const loginUser = async (req, res) => {
+exports.loginUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-
+    
     const user = await User.findOne({ email }).select('+password');
-
-    if (user && (await user.matchPassword(password))) {
-      res.json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
-        token: generateToken(user._id),
-      });
-    } else {
-      res.status(401);
-      throw new Error('Invalid email or password');
+    if (!user || !(await user.matchPassword(password))) {
+      return res.status(401).json({ message: 'Invalid email or password' });
     }
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
 
-module.exports = {
-  registerUser,
-  loginUser
+    res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+      token: generateToken(user._id)
+    });
+  } catch (error) {
+    next(error);
+  }
 };

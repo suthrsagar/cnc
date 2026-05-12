@@ -1,63 +1,44 @@
 const Design = require('../models/Design');
 
-// @desc    Get all designs
-// @route   GET /api/designs
-// @access  Public
-const getDesigns = async (req, res) => {
+exports.getDesigns = async (req, res, next) => {
   try {
     const { category, isTrending, search } = req.query;
     let query = {};
-    
-    if (category) query.category = category;
-    if (isTrending) query.isTrending = isTrending === 'true';
+
+    if (category && category !== 'All') query.category = category;
+    if (isTrending === 'true') query.isTrending = true;
     if (search) query.title = { $regex: search, $options: 'i' };
 
     const designs = await Design.find(query).sort({ createdAt: -1 });
     res.json(designs);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
-// @desc    Get single design
-// @route   GET /api/designs/:id
-// @access  Public
-const getDesignById = async (req, res) => {
+exports.getDesignById = async (req, res, next) => {
   try {
     const design = await Design.findById(req.params.id);
-    if (design) {
-      res.json(design);
-    } else {
-      res.status(404).json({ message: 'Design not found' });
-    }
+    if (!design) return res.status(404).json({ message: 'Design not found' });
+    
+    design.views += 1;
+    await design.save();
+    
+    res.json(design);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
-// @desc    Create a design
-// @route   POST /api/designs
-// @access  Private/Admin
-const createDesign = async (req, res) => {
+exports.createDesign = async (req, res, next) => {
   try {
-    const design = new Design({
-      ...req.body
-    });
-    
-    // If an image was uploaded via Cloudinary multer storage
+    const design = new Design(req.body);
     if (req.file) {
       design.imageUrl = req.file.path;
     }
-
-    const createdDesign = await design.save();
-    res.status(201).json(createdDesign);
+    await design.save();
+    res.status(201).json(design);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
-};
-
-module.exports = {
-  getDesigns,
-  getDesignById,
-  createDesign
 };

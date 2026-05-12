@@ -11,7 +11,6 @@ router.route('/')
   .get(getDesigns)
   .post(protect, admin, upload.single('image'), createDesign);
 
-router.route('/:id')
-  .get(getDesignById);
+router.route('/:id').get(getDesignById);
 
 module.exports = router;

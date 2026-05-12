@@ -8,12 +8,9 @@ const { storage } = require('../config/cloudinary');
 const upload = multer({ storage });
 
 router.route('/')
-  .post(protect, upload.single('referenceImage'), createOrder);
+  .post(protect, upload.single('customImage'), createOrder);
 
-router.route('/myorders')
-  .get(protect, getMyOrders);
-
-router.route('/:id')
-  .get(protect, getOrderById);
+router.route('/myorders').get(protect, getMyOrders);
+router.route('/:id').get(protect, getOrderById);
 
 module.exports = router;
