@@ -18,6 +18,8 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/designs', require('./routes/designRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));
+app.use('/api/admin', require('./routes/adminRoutes'));
+app.use('/api/banners', require('./routes/bannerRoutes'));
 
 app.get('/', (req, res) => {
   res.send('AuraWood CNC Backend is running New');

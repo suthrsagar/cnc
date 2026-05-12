@@ -69,15 +69,26 @@ exports.getAllOrders = async (req, res, next) => {
 
 exports.updateOrderStatus = async (req, res, next) => {
   try {
-    const { status, priceQuote } = req.body;
+    const { status, priceQuote, adminNotes } = req.body;
     const order = await Order.findById(req.params.id);
     if (!order) return res.status(404).json({ message: 'Order not found' });
 
     if (status) order.status = status;
     if (priceQuote !== undefined) order.priceQuote = priceQuote;
+    if (adminNotes !== undefined) order.adminNotes = adminNotes;
 
     await order.save();
     res.json(order);
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.deleteOrder = async (req, res, next) => {
+  try {
+    const order = await Order.findByIdAndDelete(req.params.id);
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+    res.json({ message: 'Order deleted' });
   } catch (error) {
     next(error);
   }

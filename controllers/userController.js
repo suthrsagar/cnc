@@ -37,3 +37,28 @@ exports.getAllUsers = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.blockUser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    
+    // Toggle role to 'blocked' or back to 'user'
+    user.role = user.role === 'blocked' ? 'user' : 'blocked';
+    await user.save();
+    
+    res.json(user);
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.deleteUser = async (req, res, next) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json({ message: 'User deleted' });
+  } catch (error) {
+    next(error);
+  }
+};
