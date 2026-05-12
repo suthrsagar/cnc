@@ -69,15 +69,34 @@ exports.getAllOrders = async (req, res, next) => {
 
 exports.updateOrderStatus = async (req, res, next) => {
   try {
-    const { status, priceQuote, adminNotes } = req.body;
+    const { status, priceQuote, finalPrice, adminNotes, estimatedCompletionDate, statusNote } = req.body;
     const order = await Order.findById(req.params.id);
     if (!order) return res.status(404).json({ message: 'Order not found' });
 
-    if (status) order.status = status;
+    let statusChanged = false;
+
+    if (status && order.status !== status) {
+      order.status = status;
+      statusChanged = true;
+    }
+    
     if (priceQuote !== undefined) order.priceQuote = priceQuote;
+    if (finalPrice !== undefined) order.finalPrice = finalPrice;
     if (adminNotes !== undefined) order.adminNotes = adminNotes;
+    if (estimatedCompletionDate !== undefined) order.estimatedCompletionDate = estimatedCompletionDate;
+
+    if (statusChanged || statusNote) {
+      order.statusHistory.push({
+        status: order.status,
+        note: statusNote || `Status updated to ${order.status}`,
+        timestamp: Date.now()
+      });
+    }
 
     await order.save();
+    
+    // Populate before returning so frontend gets full data
+    await order.populate('user', 'name email phone');
     res.json(order);
   } catch (error) {
     next(error);

@@ -10,10 +10,26 @@ const orderSchema = new mongoose.Schema({
   notes: { type: String },
   status: { 
     type: String, 
-    enum: ['Pending', 'Accepted', 'In Progress', 'Cutting', 'Polishing', 'Ready', 'Completed', 'Delivered', 'Cancelled'], 
+    enum: ['Pending', 'Accepted', 'In Review', 'Design Approved', 'Cutting', 'Polishing', 'Finishing', 'Ready', 'Out for Delivery', 'Delivered', 'Cancelled'], 
     default: 'Pending' 
   },
-  priceQuote: { type: Number }
+  statusHistory: [{
+    status: String,
+    timestamp: { type: Date, default: Date.now },
+    note: String
+  }],
+  priceQuote: { type: Number }, // Estimated price
+  finalPrice: { type: Number },
+  adminNotes: { type: String },
+  estimatedCompletionDate: { type: Date }
 }, { timestamps: true });
+
+// Pre-save to auto-add history on creation
+orderSchema.pre('save', function(next) {
+  if (this.isNew) {
+    this.statusHistory.push({ status: this.status, note: 'Order created' });
+  }
+  next();
+});
 
 module.exports = mongoose.model('Order', orderSchema);
