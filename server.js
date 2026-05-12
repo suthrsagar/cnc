@@ -24,7 +24,7 @@ app.use('/api/orders', orderRoutes);
 
 // Root Route
 app.get('/', (req, res) => {
-  res.send('CNC Wood Design API is running... 🚀');
+  res.send('CNC Wood Design API is running... ');
 });
 
 // Error Middleware
