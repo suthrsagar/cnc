@@ -85,7 +85,7 @@ exports.updateOrderStatus = async (req, res, next) => {
     if (adminNotes !== undefined) order.adminNotes = adminNotes;
     if (estimatedCompletionDate !== undefined) order.estimatedCompletionDate = estimatedCompletionDate;
 
-    if (!order.statusHistory) {
+    if (!order.statusHistory || !Array.isArray(order.statusHistory)) {
       order.statusHistory = [];
     }
 
