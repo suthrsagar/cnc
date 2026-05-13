@@ -23,7 +23,7 @@ app.use('/api/banners', require('./routes/bannerRoutes'));
 app.use('/api/chat', require('./routes/chatRoutes'));
 
 app.get('/', (req, res) => {
-  res.send('AuraWood CNC Backend is running admin with order fix ');
+  res.send('AuraWood CNC Backend is running with new feture ');
 });
 
 app.use(errorHandler);

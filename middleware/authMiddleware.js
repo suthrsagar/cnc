@@ -13,6 +13,10 @@ exports.protect = async (req, res, next) => {
         return res.status(401).json({ message: 'User not found or deleted' });
       }
       
+      if (req.user.role === 'blocked') {
+        return res.status(403).json({ message: 'Your account has been banned by the admin.' });
+      }
+      
       return next();
     } catch (error) {
       return res.status(401).json({ message: 'Not authorized, token failed' });

@@ -70,6 +70,21 @@ exports.blockUser = async (req, res, next) => {
   }
 };
 
+exports.toggleAdmin = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    
+    // Toggle role to 'admin' or back to 'user'
+    user.role = user.role === 'admin' ? 'user' : 'admin';
+    await user.save();
+    
+    res.json(user);
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.deleteUser = async (req, res, next) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);

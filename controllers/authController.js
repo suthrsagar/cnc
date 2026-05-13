@@ -38,6 +38,10 @@ exports.loginUser = async (req, res, next) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
+    if (user.role === 'blocked') {
+      return res.status(403).json({ message: 'Your account has been banned by the admin.' });
+    }
+
     res.json({
       _id: user._id,
       name: user.name,
