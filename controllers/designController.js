@@ -1,4 +1,6 @@
 const Design = require('../models/Design');
+const User = require('../models/User');
+const { sendAdvancedNotification } = require('../utils/notificationSender');
 
 exports.getDesigns = async (req, res, next) => {
   try {
@@ -52,6 +54,29 @@ exports.createDesign = async (req, res, next) => {
     });
 
     await design.save();
+
+    // 🚀 Send Premium Advanced Notification to all users
+    try {
+      const users = await User.find({ fcmToken: { $ne: '' } });
+      const tokens = users.map(u => u.fcmToken);
+
+      if (tokens.length > 0) {
+        await sendAdvancedNotification({
+          tokens,
+          title: 'New Design Added! 🌟',
+          body: `Check out our new awesome model: ${design.title}. Grab it now!`,
+          image: design.imageUrl, // Will trigger BigPicture style
+          type: 'explore',
+          id: design._id.toString(),
+          screen: 'ExploreDetails',
+          action1: 'View Model',
+          action2: 'Save'
+        });
+      }
+    } catch (pushErr) {
+      console.error('Failed to send design push notification:', pushErr);
+    }
+
     res.status(201).json(design);
   } catch (error) {
     next(error);

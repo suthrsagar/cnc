@@ -1,4 +1,6 @@
 const Order = require('../models/Order');
+const User = require('../models/User');
+const { sendAdvancedNotification } = require('../utils/notificationSender');
 
 exports.createOrder = async (req, res, next) => {
   try {
@@ -22,6 +24,21 @@ exports.createOrder = async (req, res, next) => {
       referenceDesign: referenceDesign || undefined,
       customImageUrl
     });
+
+    // Notify Admins about new order
+    const admins = await User.find({ role: 'admin', fcmToken: { $ne: '' } });
+    const adminTokens = admins.map(a => a.fcmToken);
+    
+    if (adminTokens.length > 0) {
+      await sendAdvancedNotification({
+        tokens: adminTokens,
+        title: 'New Order Received! 📦',
+        body: `A new order has been placed for ${material || 'Custom'} design.`,
+        type: 'order',
+        id: order._id.toString(),
+        screen: 'AdminOrderDetails'
+      });
+    }
 
     res.status(201).json(order);
   } catch (error) {
@@ -100,7 +117,31 @@ exports.updateOrderStatus = async (req, res, next) => {
     await order.save();
     
     // Populate before returning so frontend gets full data
-    await order.populate({ path: 'user', select: 'name email phone' });
+    await order.populate({ path: 'user', select: 'name email phone fcmToken' });
+
+    // Notify User about status update
+    if (statusChanged && order.user && order.user.fcmToken) {
+      const statusMessages = {
+        'Confirmed': 'Your order has been confirmed! 🎉',
+        'In Production': 'Your order is now in production! ⚙️',
+        'Shipped': 'Your order has been shipped! 🚚',
+        'Delivered': 'Your order has been delivered! Enjoy! 🎁',
+        'Cancelled': 'Your order has been cancelled. ❌'
+      };
+
+      const msgBody = statusMessages[order.status] || `Your order status was updated to: ${order.status}`;
+      
+      await sendAdvancedNotification({
+        tokens: [order.user.fcmToken],
+        title: 'Order Status Update 📦',
+        body: msgBody,
+        type: 'order',
+        id: order._id.toString(),
+        screen: 'OrderDetail',
+        action1: 'View Order'
+      });
+    }
+
     res.json(order);
   } catch (error) {
     next(error);

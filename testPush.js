@@ -1,43 +1,65 @@
+require('dotenv').config();
+const mongoose = require('mongoose');
 const admin = require('firebase-admin');
 const fs = require('fs');
 const path = require('path');
+const connectDB = require('./config/db');
 
 const serviceAccountPath = path.join(__dirname, 'serviceAccountKey.json');
 
 console.log("---------------------------------------------------");
-console.log("🚀 STARTING PUSH NOTIFICATION TEST...");
+console.log("🚀 STARTING PUSH NOTIFICATION TEST TO DEVICE...");
 
 if (!fs.existsSync(serviceAccountPath)) {
   console.error("❌ ERROR: serviceAccountKey.json file is MISSING!");
-  console.error("I cannot send a notification without your Firebase Private Key.");
-  console.error("Please download it from Firebase Console -> Project Settings -> Service Accounts, and put it in the backend folder.");
   process.exit(1);
 }
 
 const serviceAccount = require(serviceAccountPath);
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
-});
-
-// Since I don't have the specific device token of your phone,
-// I will try to send a message to a topic called 'all'
-// Devices need to be subscribed to 'all' to receive this, 
-// OR we can just send it, and if Firebase accepts it, it means the setup works.
-
-const payload = {
-  notification: {
-    title: "WoodCraft CNC Test",
-    body: "This is a test notification from the server!"
-  },
-  topic: 'all'
-};
-
-admin.messaging().send(payload)
-  .then((response) => {
-    console.log("✅ SUCCESS: Successfully sent test message:", response);
-    console.log("---------------------------------------------------");
-  })
-  .catch((error) => {
-    console.log("❌ ERROR: Error sending message:", error);
-    console.log("---------------------------------------------------");
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
   });
+}
+
+const User = require('./models/User'); // Mongoose model
+
+async function runTest() {
+  try {
+    console.log("Connecting to Database...");
+    await connectDB();
+    
+    console.log("Searching for registered devices...");
+    // Find a user who has logged in and synced their FCM token
+    const usersWithTokens = await User.find({ fcmToken: { $exists: true, $ne: "" } });
+    
+    if (usersWithTokens.length === 0) {
+      console.log("⚠️ No FCM Tokens found in the database!");
+      console.log("Please OPEN THE APP on your phone first so it can register the token, then try again.");
+      process.exit(0);
+    }
+
+    const targetUser = usersWithTokens[0];
+    console.log(`Found device for user: ${targetUser.email}`);
+    
+    const payload = {
+      notification: {
+        title: "Test Successful! 🎉",
+        body: "Your WoodCraft CNC push notifications are perfectly working on your phone!"
+      },
+      token: targetUser.fcmToken
+    };
+
+    console.log("Sending push notification to the phone...");
+    const response = await admin.messaging().send(payload);
+    console.log("✅ SUCCESS: Phone received the message! ID:", response);
+    
+  } catch (error) {
+    console.log("❌ ERROR:", error);
+  } finally {
+    mongoose.connection.close();
+    process.exit(0);
+  }
+}
+
+runTest();
