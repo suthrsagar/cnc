@@ -60,6 +60,10 @@ exports.blockUser = async (req, res, next) => {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: 'User not found' });
     
+    if (user.email === 'sutharsagar710@gmail.com') {
+      return res.status(403).json({ message: 'Cannot block the main admin' });
+    }
+
     // Toggle role to 'blocked' or back to 'user'
     user.role = user.role === 'blocked' ? 'user' : 'blocked';
     await user.save();
@@ -75,6 +79,10 @@ exports.toggleAdmin = async (req, res, next) => {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: 'User not found' });
     
+    if (user.email === 'sutharsagar710@gmail.com') {
+      return res.status(403).json({ message: 'Cannot change role of the main admin' });
+    }
+
     // Toggle role to 'admin' or back to 'user'
     user.role = user.role === 'admin' ? 'user' : 'admin';
     await user.save();
@@ -87,8 +95,14 @@ exports.toggleAdmin = async (req, res, next) => {
 
 exports.deleteUser = async (req, res, next) => {
   try {
-    const user = await User.findByIdAndDelete(req.params.id);
+    const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: 'User not found' });
+    
+    if (user.email === 'sutharsagar710@gmail.com') {
+      return res.status(403).json({ message: 'Cannot delete the main admin' });
+    }
+
+    await User.findByIdAndDelete(req.params.id);
     res.json({ message: 'User deleted' });
   } catch (error) {
     next(error);
