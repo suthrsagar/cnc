@@ -8,6 +8,7 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true, select: false },
   role: { type: String, enum: ['user', 'admin', 'blocked'], default: 'user' },
   avatarUrl: { type: String, default: '' },
+  fcmToken: { type: String, default: '' },
   savedDesigns: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Design' }]
 }, { timestamps: true });
 

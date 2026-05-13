@@ -108,3 +108,17 @@ exports.deleteUser = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.updateFcmToken = async (req, res, next) => {
+  try {
+    const { token } = req.body;
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    
+    user.fcmToken = token;
+    await user.save();
+    res.json({ message: 'FCM Token updated successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
