@@ -2,17 +2,7 @@ const admin = require('./firebaseAdmin');
 const User = require('../models/User');
 
 /**
- * Send an advanced push notification
- * @param {Object} params
- * @param {string|string[]} params.tokens - Single token or array of FCM tokens
- * @param {string} params.title - Notification title
- * @param {string} params.body - Notification body
- * @param {string} [params.image] - URL of the image for BigPicture style
- * @param {string} params.type - 'order', 'explore', 'chat', 'like', 'follow', 'offer'
- * @param {string} params.id - Reference ID (orderId, designId, chatId, etc.)
- * @param {string} [params.screen] - Screen to redirect to
- * @param {string} [params.action1] - Title for action button 1
- * @param {string} [params.action2] - Title for action button 2
+ * Send an advanced push notification with Smart Timing Logic
  */
 exports.sendAdvancedNotification = async ({
   tokens,
@@ -34,6 +24,20 @@ exports.sendAdvancedNotification = async ({
     if (!tokens || (Array.isArray(tokens) && tokens.length === 0)) {
       console.warn('No tokens provided for notification.');
       return false;
+    }
+
+    // --- SMART TIMING LOGIC ---
+    // Prevent promotional/explore spam during late night (10 PM to 8 AM IST)
+    const isPromotional = ['explore', 'offer'].includes(type);
+    if (isPromotional) {
+      // Get current hour in IST
+      const currentHourIST = new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata", hour: 'numeric', hour12: false });
+      const hour = parseInt(currentHourIST, 10);
+      
+      if (hour >= 22 || hour < 8) {
+        console.log(`[Smart Logic Blocked] Promotional notification '${title}' stopped at ${hour}:00 IST to prevent annoying users.`);
+        return false;
+      }
     }
 
     const targetTokens = Array.isArray(tokens) ? tokens : [tokens];
