@@ -25,7 +25,7 @@ const orderSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Pre-save to auto-add history on creation
-orderSchema.pre('save', function(next) {
+orderSchema.pre('save', function() {
   if (this.isNew) {
     this.statusHistory = [{ 
       status: this.status || 'Pending', 
@@ -33,7 +33,6 @@ orderSchema.pre('save', function(next) {
       timestamp: Date.now()
     }];
   }
-  next();
 });
 
 module.exports = mongoose.model('Order', orderSchema);
